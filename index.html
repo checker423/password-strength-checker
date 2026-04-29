@@ -1,0 +1,358 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Password Strength Checker</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap');
+        body { font-family: 'Inter', sans-serif; }
+        
+        /* Dark theme variables */
+        :root {
+            --bg-primary: #ffffff;
+            --bg-secondary: #f8fafc;
+            --bg-tertiary: #f1f5f9;
+            --text-primary: #1e293b;
+            --text-secondary: #64748b;
+            --text-tertiary: #94a3b8;
+            --border-color: #e2e8f0;
+            --shadow-color: rgba(0, 0, 0, 0.1);
+        }
+        
+        [data-theme="dark"] {
+            --bg-primary: #0f172a;
+            --bg-secondary: #1e293b;
+            --bg-tertiary: #334155;
+            --text-primary: #f1f5f9;
+            --text-secondary: #cbd5e1;
+            --text-tertiary: #94a3b8;
+            --border-color: #475569;
+            --shadow-color: rgba(0, 0, 0, 0.3);
+        }
+        
+        body {
+            background-color: var(--bg-secondary);
+            color: var(--text-primary);
+            transition: background-color 0.3s ease, color 0.3s ease;
+        }
+        
+        .strength-bar {
+            transition: width 0.3s ease, background-color 0.3s ease;
+        }
+        
+        .password-input:focus {
+            box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.1);
+        }
+        
+        .fade-in {
+            animation: fadeIn 0.3s ease-in;
+        }
+        
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(-10px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+        
+        .pulse {
+            animation: pulse 2s infinite;
+        }
+        
+        @keyframes pulse {
+            0%, 100% { opacity: 1; }
+            50% { opacity: 0.5; }
+        }
+        
+        /* Theme toggle styles */
+        .theme-toggle {
+            position: relative;
+            width: 60px;
+            height: 30px;
+        }
+        
+        .theme-toggle input {
+            opacity: 0;
+            width: 0;
+            height: 0;
+        }
+        
+        .slider {
+            position: absolute;
+            cursor: pointer;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background-color: #ccc;
+            transition: .4s;
+            border-radius: 34px;
+        }
+        
+        .slider:before {
+            position: absolute;
+            content: "";
+            height: 22px;
+            width: 22px;
+            left: 4px;
+            bottom: 4px;
+            background-color: white;
+            transition: .4s;
+            border-radius: 50%;
+        }
+        
+        input:checked + .slider {
+            background-color: #3b82f6;
+        }
+        
+        input:checked + .slider:before {
+            transform: translateX(30px);
+        }
+        
+        /* Dark theme specific styles */
+        .card-bg {
+            background-color: var(--bg-primary);
+            border: 1px solid var(--border-color);
+        }
+        
+        .text-primary {
+            color: var(--text-primary);
+        }
+        
+        .text-secondary {
+            color: var(--text-secondary);
+        }
+        
+        .text-tertiary {
+            color: var(--text-tertiary);
+        }
+        
+        .bg-card-secondary {
+            background-color: var(--bg-tertiary);
+        }
+        
+        .shadow-custom {
+            box-shadow: 0 10px 25px var(--shadow-color);
+        }
+        
+        /* Custom scrollbar for dark theme */
+        ::-webkit-scrollbar {
+            width: 8px;
+        }
+        
+        ::-webkit-scrollbar-track {
+            background: var(--bg-secondary);
+        }
+        
+        ::-webkit-scrollbar-thumb {
+            background: var(--text-tertiary);
+            border-radius: 4px;
+        }
+        
+        ::-webkit-scrollbar-thumb:hover {
+            background: var(--text-secondary);
+        }
+    </style>
+</head>
+<body class="min-h-screen transition-all duration-300">
+    <div class="min-h-screen flex items-center justify-center p-4">
+        <div class="w-full max-w-2xl">
+            <!-- Header with Theme Toggle -->
+            <div class="text-center mb-8">
+                <div class="flex justify-between items-center mb-6">
+                    <div class="flex-1"></div>
+                    <div class="inline-flex items-center justify-center w-16 h-16 bg-gradient-to-br from-blue-500 to-purple-600 rounded-full">
+                        <i class="fas fa-shield-alt text-white text-2xl"></i>
+                    </div>
+                    <div class="flex-1 flex justify-end">
+                        <label class="theme-toggle">
+                            <input type="checkbox" id="themeToggle">
+                            <span class="slider"></span>
+                        </label>
+                    </div>
+                </div>
+                <h1 class="text-4xl font-bold text-primary mb-2">Password Strength Checker</h1>
+                <p class="text-secondary">Create strong, secure passwords with real-time feedback</p>
+            </div>
+
+            <!-- Main Card -->
+            <div class="card-bg rounded-2xl shadow-custom p-8">
+                <!-- Password Input Section -->
+                <div class="mb-6">
+                    <label for="password" class="block text-sm font-medium text-primary mb-2">
+                        Enter Your Password
+                    </label>
+                    <div class="relative">
+                        <input 
+                            type="password" 
+                            id="password" 
+                            placeholder="Type your password..."
+                            class="password-input w-full px-4 py-3 pr-12 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent text-lg bg-card-secondary text-primary border-opacity-20"
+                        >
+                        <button 
+                            id="togglePassword" 
+                            class="absolute right-3 top-1/2 transform -translate-y-1/2 text-tertiary hover:text-primary focus:outline-none"
+                        >
+                            <i class="fas fa-eye" id="eyeIcon"></i>
+                        </button>
+                    </div>
+                </div>
+
+                <!-- Strength Meter -->
+                <div class="mb-6">
+                    <div class="flex justify-between items-center mb-2">
+                        <span class="text-sm font-medium text-primary">Password Strength</span>
+                        <span id="strengthText" class="text-sm font-semibold">Not Rated</span>
+                    </div>
+                    <div class="w-full bg-card-secondary rounded-full h-3 overflow-hidden border border-opacity-20">
+                        <div id="strengthBar" class="strength-bar h-full rounded-full" style="width: 0%"></div>
+                    </div>
+                </div>
+
+                <!-- Feedback Section -->
+                <div id="feedbackSection" class="hidden fade-in">
+                    <h3 class="text-lg font-semibold text-primary mb-4">Password Analysis</h3>
+                    
+                    <!-- Score Breakdown -->
+                    <div class="grid grid-cols-2 md:grid-cols-4 gap-3 mb-6">
+                        <div id="lengthCheck" class="text-center p-3 bg-card-secondary rounded-lg border border-opacity-20">
+                            <i class="fas fa-ruler text-tertiary mb-1"></i>
+                            <p class="text-xs text-secondary">Length</p>
+                        </div>
+                        <div id="uppercaseCheck" class="text-center p-3 bg-card-secondary rounded-lg border border-opacity-20">
+                            <i class="fas fa-font text-tertiary mb-1"></i>
+                            <p class="text-xs text-secondary">Uppercase</p>
+                        </div>
+                        <div id="lowercaseCheck" class="text-center p-3 bg-card-secondary rounded-lg border border-opacity-20">
+                            <i class="fas fa-font text-tertiary mb-1"></i>
+                            <p class="text-xs text-secondary">Lowercase</p>
+                        </div>
+                        <div id="numberCheck" class="text-center p-3 bg-card-secondary rounded-lg border border-opacity-20">
+                            <i class="fas fa-hashtag text-tertiary mb-1"></i>
+                            <p class="text-xs text-secondary">Numbers</p>
+                        </div>
+                        <div id="specialCheck" class="text-center p-3 bg-card-secondary rounded-lg border border-opacity-20">
+                            <i class="fas fa-asterisk text-tertiary mb-1"></i>
+                            <p class="text-xs text-secondary">Special</p>
+                        </div>
+                        <div id="commonCheck" class="text-center p-3 bg-card-secondary rounded-lg border border-opacity-20">
+                            <i class="fas fa-exclamation-triangle text-tertiary mb-1"></i>
+                            <p class="text-xs text-secondary">Common</p>
+                        </div>
+                        <div id="patternCheck" class="text-center p-3 bg-card-secondary rounded-lg border border-opacity-20">
+                            <i class="fas fa-keyboard text-tertiary mb-1"></i>
+                            <p class="text-xs text-secondary">Patterns</p>
+                        </div>
+                        <div id="entropyCheck" class="text-center p-3 bg-card-secondary rounded-lg border border-opacity-20">
+                            <i class="fas fa-dice text-tertiary mb-1"></i>
+                            <p class="text-xs text-secondary">Entropy</p>
+                        </div>
+                    </div>
+
+                    <!-- Suggestions -->
+                    <div id="suggestions" class="mb-6">
+                        <h4 class="text-sm font-semibold text-primary mb-2">Suggestions to Improve:</h4>
+                        <ul id="suggestionsList" class="space-y-2"></ul>
+                    </div>
+
+                    <!-- Estimated Crack Time -->
+                    <div id="crackTime" class="bg-blue-50 dark:bg-blue-900/20 border border-blue-200 dark:border-blue-800 rounded-lg p-4">
+                        <div class="flex items-center">
+                            <i class="fas fa-clock text-blue-500 dark:text-blue-400 mr-3"></i>
+                            <div>
+                                <p class="text-sm font-semibold text-blue-800 dark:text-blue-200">Estimated Crack Time</p>
+                                <p id="crackTimeText" class="text-sm text-blue-600 dark:text-blue-300">Not calculated</p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Action Buttons -->
+                <div class="flex gap-3 mt-6">
+                    <button id="generatePassword" class="flex-1 bg-gradient-to-r from-blue-500 to-purple-600 text-white px-6 py-3 rounded-lg font-medium hover:from-blue-600 hover:to-purple-700 transition-all duration-200 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2">
+                        <i class="fas fa-dice mr-2"></i>
+                        Generate Strong Password
+                    </button>
+                    <button id="copyPassword" class="px-6 py-3 bg-gray-100 dark:bg-gray-700 text-gray-700 dark:text-gray-300 rounded-lg font-medium hover:bg-gray-200 dark:hover:bg-gray-600 transition-all duration-200 focus:outline-none focus:ring-2 focus:ring-gray-500 focus:ring-offset-2 disabled:opacity-50 disabled:cursor-not-allowed" disabled>
+                        <i class="fas fa-copy mr-2"></i>
+                        Copy
+                    </button>
+                </div>
+
+                <!-- Password Generator Options -->
+                <div class="mt-6 p-4 bg-card-secondary rounded-lg border border-opacity-20">
+                    <h4 class="text-sm font-semibold text-primary mb-3">Password Generator Options</h4>
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                        <div>
+                            <label class="text-xs text-secondary mb-1 block">Password Length</label>
+                            <div class="flex items-center gap-2">
+                                <input type="range" id="passwordLength" min="8" max="32" value="16" class="flex-1">
+                                <span id="lengthValue" class="text-sm font-medium text-primary w-8">16</span>
+                            </div>
+                        </div>
+                        <div class="space-y-2">
+                            <label class="flex items-center text-xs text-secondary">
+                                <input type="checkbox" id="includeUppercase" checked class="mr-2">
+                                Include Uppercase (A-Z)
+                            </label>
+                            <label class="flex items-center text-xs text-secondary">
+                                <input type="checkbox" id="includeLowercase" checked class="mr-2">
+                                Include Lowercase (a-z)
+                            </label>
+                            <label class="flex items-center text-xs text-secondary">
+                                <input type="checkbox" id="includeNumbers" checked class="mr-2">
+                                Include Numbers (0-9)
+                            </label>
+                            <label class="flex items-center text-xs text-secondary">
+                                <input type="checkbox" id="includeSymbols" checked class="mr-2">
+                                Include Symbols (!@#$%...)
+                            </label>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Password History -->
+                <div class="mt-6 p-4 bg-card-secondary rounded-lg border border-opacity-20">
+                    <div class="flex justify-between items-center mb-3">
+                        <h4 class="text-sm font-semibold text-primary">Recent Generated Passwords</h4>
+                        <button id="clearHistory" class="text-xs text-red-500 hover:text-red-600">
+                            <i class="fas fa-trash mr-1"></i>Clear
+                        </button>
+                    </div>
+                    <div id="passwordHistory" class="space-y-2 max-h-32 overflow-y-auto">
+                        <p class="text-xs text-secondary italic">No passwords generated yet</p>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Info Cards -->
+            <div class="grid md:grid-cols-3 gap-4 mt-8">
+                <div class="card-bg rounded-lg p-4 shadow-custom">
+                    <div class="flex items-center mb-2">
+                        <i class="fas fa-lock text-green-500 mr-2"></i>
+                        <h3 class="font-semibold text-primary">Strong Password</h3>
+                    </div>
+                    <p class="text-sm text-secondary">12+ characters with mixed case, numbers, and symbols</p>
+                </div>
+                <div class="card-bg rounded-lg p-4 shadow-custom">
+                    <div class="flex items-center mb-2">
+                        <i class="fas fa-user-shield text-blue-500 mr-2"></i>
+                        <h3 class="font-semibold text-primary">Unique & Random</h3>
+                    </div>
+                    <p class="text-sm text-secondary">Avoid personal info and common patterns</p>
+                </div>
+                <div class="card-bg rounded-lg p-4 shadow-custom">
+                    <div class="flex items-center mb-2">
+                        <i class="fas fa-sync text-purple-500 mr-2"></i>
+                        <h3 class="font-semibold text-primary">Regular Updates</h3>
+                    </div>
+                    <p class="text-sm text-secondary">Change passwords regularly for security</p>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script src="script.js"></script>
+</body>
+</html>
